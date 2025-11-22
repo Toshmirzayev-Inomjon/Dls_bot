@@ -46,9 +46,13 @@ def handler(message):
 
         caption_coins = (
             "💰 *Coins Buyurtma*\n\n"
-            "🔹 1000 Coins – Narxi: 5$\n"
-            "🔹 5000 Coins – Narxi: 20$\n\n"
-            "👨‍💻 Admin: @toshmirzayevinomjon ☑️\n"
+            "• Bundle : 35.000 ✅\n"
+            "• Stack  : 70.000 ✅\n"
+            "• Cup    : 115.000 ✅\n"
+            "• Case   : 190.000 ✅\n"
+            "• Locker : 330.000 ✅\n"
+            "• Vault  : 700.000 ✅\n\n"
+            "👨‍💻 Admin: @toshmirzayevinomjon ☑️"
         )
         send_photo(bot, chat, "coins.jpg", caption_coins, kb_coins)
 
@@ -59,9 +63,12 @@ def handler(message):
 
         caption_gems = (
             "💎 *Gems Buyurtma*\n\n"
-            "🔹 100 Gems – Narxi: 10$\n"
-            "🔹 500 Gems – Narxi: 45$\n\n"
-            "👨‍💻 Admin: @toshmirzayevinomjon ☑️\n"
+            "💎 90 = 35.000 ✅\n"
+            "💎 400 = 130.000 ✅\n"
+            "💎 910 = 275.000 ✅\n"
+            "💎 2.700 = 700.000 ✅\n"
+            "💎 6.000 = 1.600.000 ✅\n\n"
+            "👨‍💻 Admin: @toshmirzayevinomjon ☑️"
 
         )
         send_photo(bot, chat, "gems.jpg", caption_gems, kb_gems)
@@ -72,10 +79,12 @@ def handler(message):
         kb_season.add(types.InlineKeyboardButton("⬅️ Orqaga", callback_data="back_main"))
 
         caption_season = (
-            "💳 *Season Pass*\n\n"
-            "🔹 1 oylik Pass – Narxi: 50.000 ✅\n"
-            "🔹 3 oylik Pass – Narxi: 120.000 ✅\n\n"
-            "👨‍💻 Admin: @toshmirzayevinomjon ☑️\n"
+             "💳 *Season Pass*\n\n"
+            "Sezon pass narxlari:\n"
+            "• Aksiya kelgani: 25 000 soʻm 💵\n"
+            "• Aksiya kelmagani: 38 000 soʻm 💵\n"
+            "• Premium pass: 150 000 soʻm 💵\n\n"
+            "👨‍💻 Admin: @toshmirzayevinomjon ☑️"
 
         )
         send_photo(bot, chat, "season pass.jpg", caption_season, kb_season)
