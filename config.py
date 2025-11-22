@@ -1,5 +1,5 @@
 # config.py
-BOT_TOKEN = "8324800558:AAFB16_JfOjSYDb0sMtmnAcjDVFHaP-nMLg"
+BOT_TOKEN = "8223820713:AAFLJ1MudhJHRLIXnVy_97HpKePeIqCW90I"
 
 # Adminlar ro'yxati (Telegram ID raqamlari)
 ADMINS = [7795087338]
