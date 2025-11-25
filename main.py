@@ -1,12 +1,11 @@
+# main.py
 import telebot
 from telebot import types
-
 from config import BOT_TOKEN, ADMINS
-from menus import main_menu, social_inline, send_photo,donate_photo_coins,donate_photo_gems,donate_photo_season, stadium_kb, club_kb, sticker_kb
-from donate import quick_donate
-from admin_panel import admin_keyboard, list_orders, admin_update_from_callback
-
-
+from menus import main_menu, social_inline, send_photo, coins_menu, gems_menu, season_menu, stadium_kb, club_kb, sticker_kb
+from donate import quick_donate, create_order_and_notify, ITEMS
+from admin_panel import admin_keyboard, list_orders, admin_update_from_callback,handle_admin_message
+from crm import get_order
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # /start
@@ -15,7 +14,12 @@ def cmd_start(message):
     name = message.from_user.first_name or "User"
     bot.send_message(message.chat.id, f"Salom {name}! Mega DLS Botga xush kelibsiz 🎮", reply_markup=main_menu())
 
-# Help yoki menu
+@bot.message_handler(commands=["help"])
+def cmd_help(message):
+    name = message.from_user.first_name or "User"
+    bot.send_message(message.chat.id, f"Assalomu alaykum hurmatli {name} bot haqida tushuncha bot dls buyicha danat qiladi admin ishonchli Admin:https://t.me/toshmirzayevinomjon.", reply_markup=main_menu())
+
+# menu
 @bot.message_handler(commands=["menu"])
 def cmd_menu(message):
     bot.send_message(message.chat.id, "Asosiy menyu:", reply_markup=main_menu())
@@ -36,64 +40,19 @@ def handler(message):
         bot.send_message(chat, "Ijtimoiy tarmoqlarimiz:", reply_markup=social_inline())
         return
 
-
-    # DONAT SERVIS (foto menyu)
-    if text == "🛍 Donat Servis":
-        # 1️⃣ Coins bo‘limi
-        kb_coins = types.InlineKeyboardMarkup(row_width=1)
-        kb_coins.add(types.InlineKeyboardButton("💰 Coins Buyurtma", callback_data="donate_coins"))
-        kb_coins.add(types.InlineKeyboardButton("⬅️ Orqaga", callback_data="back_main"))
-
-        caption_coins = (
-            "💰 *Coins Buyurtma*\n\n"
-            "• Bundle : 35.000 ✅\n"
-            "• Stack  : 70.000 ✅\n"
-            "• Cup    : 115.000 ✅\n"
-            "• Case   : 190.000 ✅\n"
-            "• Locker : 330.000 ✅\n"
-            "• Vault  : 700.000 ✅\n\n"
-            "👨‍💻 Admin: @toshmirzayevinomjon ☑️"
-        )
-        send_photo(bot, chat, "coins.jpg", caption_coins, kb_coins)
-
-        # 2️⃣ Gems bo‘limi
-        kb_gems = types.InlineKeyboardMarkup(row_width=1)
-        kb_gems.add(types.InlineKeyboardButton("💎 Gems Buyurtma", callback_data="donate_gems"))
-        kb_gems.add(types.InlineKeyboardButton("⬅️ Orqaga", callback_data="back_main"))
-
-        caption_gems = (
-            "💎 *Gems Buyurtma*\n\n"
-            "💎 90 = 35.000 ✅\n"
-            "💎 400 = 130.000 ✅\n"
-            "💎 910 = 275.000 ✅\n"
-            "💎 2.700 = 700.000 ✅\n"
-            "💎 6.000 = 1.600.000 ✅\n\n"
-            "👨‍💻 Admin: @toshmirzayevinomjon ☑️"
-
-        )
-        send_photo(bot, chat, "gems.jpg", caption_gems, kb_gems)
-
-        # 3️⃣ Season Pass bo‘limi
-        kb_season = types.InlineKeyboardMarkup(row_width=1)
-        kb_season.add(types.InlineKeyboardButton("💳 Season Pass", callback_data="donate_season"))
-        kb_season.add(types.InlineKeyboardButton("⬅️ Orqaga", callback_data="back_main"))
-
-        caption_season = (
-             "💳 *Season Pass*\n\n"
-            "Sezon pass narxlari:\n"
-            "• Aksiya kelgani: 25 000 soʻm 💵\n"
-            "• Aksiya kelmagani: 38 000 soʻm 💵\n"
-            "• Premium pass: 150 000 soʻm 💵\n\n"
-            "👨‍💻 Admin: @toshmirzayevinomjon ☑️"
-
-        )
-        send_photo(bot, chat, "season pass.jpg", caption_season, kb_season)
-
+    # DONAT SERVIS (matn orqali ichki menyu chiqaramiz)
+    if text == "🛍 Donat Servis" or text == "💰 Donat bo‘limi":
+        # bitta xabar ichida inline tugmalar orqali bo'limni tanlash
+        kb = types.InlineKeyboardMarkup(row_width=2)
+        kb.add(types.InlineKeyboardButton("💰 Coins", callback_data="donate_coins"))
+        kb.add(types.InlineKeyboardButton("💎 Gems", callback_data="donate_gems"))
+        kb.add(types.InlineKeyboardButton("💳 Season Pass", callback_data="donate_season"))
+        kb.add(types.InlineKeyboardButton("🏟 Stadion", callback_data="donate_stadium"))
+        kb.add(types.InlineKeyboardButton("⚡ Dream Club", callback_data="donate_club"))
+        kb.add(types.InlineKeyboardButton("🎟 Sitikerlar", callback_data="donate_sticker"))
+        bot.send_message(chat, "🛍 Donat bo‘limlarini tanlang:", reply_markup=kb)
         return
 
-    if text =="🧑‍💻 admin":
-        bot.send_message(chat,"admin:https://t.me/toshmirzayevinomjon",)
-        return
     # STADIUM
     if text == "🏟 Stadion":
         message_text = (
@@ -116,7 +75,8 @@ def handler(message):
             "   Narxi: 280.000 ✅\n\n"
             "🔋 *LEGENDARNY CLUB MEMBER* – 30 kunlik\n"
             "   Narxi: 380.000 ✅\n\n"
-            "👨‍💻 Admin: @toshmirzayevinomjon ☑️\n"        )
+            "👨‍💻 Admin: @toshmirzayevinomjon ☑️\n"
+        )
         send_photo(bot, chat, "dream club.jpg", message_text, club_kb())
         return
 
@@ -133,7 +93,11 @@ def handler(message):
 
     # DLS MA'LUMOT
     if text == "📘 DLS Ma’lumotlari":
-        bot.send_message(chat, "xozircha bu qisim haqida ishlar olib borilmoqda siz ungacha admin murojat qilsangiz buladi:")
+        bot.send_message(chat, "Hozircha bu qisim haqida ishlar olib borilmoqda. Qo'shimcha ma'lumot uchun admin bilan bog'laning.")
+        return
+    # admin
+    if text == "🧑‍💻 admin":
+        bot.send_message(chat, "Admin:https://t.me/toshmirzayevinomjon")
         return
 
     # ADMIN PANEL (faqat adminlarga)
@@ -144,6 +108,9 @@ def handler(message):
         if text == "📦 Barcha buyurtmalar":
             list_orders(bot, chat)
             return
+
+    # Default
+    bot.send_message(chat, "Noto‘g‘ri buyruq yoki menyudan tanlang.", reply_markup=main_menu())
 
 # Callback handler (inline tugmalar)
 @bot.callback_query_handler(func=lambda call: True)
@@ -157,45 +124,101 @@ def callback_query(call):
         bot.answer_callback_query(call.id)
         return
 
-    # Donat tugmalari
+    # Donat bo'limlari
     if data == "donate_coins":
-        quick_donate(bot, chat, "Coins")
-        bot.answer_callback_query(call.id, "Coins buyurtmasi tanlandi")
-        return
-    if data == "donate_gems":
-        quick_donate(bot, chat, "Gems")
-        bot.answer_callback_query(call.id, "Gems buyurtmasi tanlandi")
-        return
-    if data == "donate_season":
-        quick_donate(bot, chat, "Season Pass")
-        bot.answer_callback_query(call.id, "Season Pass buyurtmasi tanlandi")
+        # coins section: send banner + coins menu
+        caption = (
+            "💰 *Coins Buyurtma*\n\n"
+            "• Bundle : 35.000 ✅\n"
+            "• Stack  : 70.000 ✅\n"
+            "• Cup    : 115.000 ✅\n"
+            "• Case   : 190.000 ✅\n"
+            "• Locker : 330.000 ✅\n"
+            "• Vault  : 700.000 ✅\n\n"
+            "👨‍💻 Admin: @toshmirzayevinomjon"
+        )
+        send_photo(bot, chat, "coins.jpg", caption, coins_menu())
+        bot.answer_callback_query(call.id)
         return
 
-    # Stadion / club / sticker
-    if data == "stadium_buy":
-        quick_donate(bot, chat, "Stadium Upgrade")
-        bot.answer_callback_query(call.id, "Stadion buyurtmasi")
-        return
-    if data == "club_info":
-        bot.send_message(chat, "Dream Club haqida: ...")
+    if data == "donate_gems":
+        caption = (
+            "💎 *Gems Buyurtma*\n\n"
+            "💎 90 = 35.000 ✅\n"
+            "💎 400 = 130.000 ✅\n"
+            "💎 910 = 275.000 ✅\n"
+            "💎 2.700 = 700.000 ✅\n"
+            "💎 6.000 = 1.600.000 ✅\n\n"
+            "👨‍💻 Admin: @toshmirzayevinomjon"
+        )
+        send_photo(bot, chat, "gems.jpg", caption, gems_menu())
         bot.answer_callback_query(call.id)
         return
-    if data == "stick_buy":
-        quick_donate(bot, chat, "Sticker")
+
+    if data == "donate_season":
+        caption = (
+            "💳 *Season Pass*\n\n"
+            "• Aksiya kelgani: 25 000 so‘m 💵\n"
+            "• Aksiya kelmagani: 38 000 so‘m 💵\n"
+            "• Premium pass: 150 000 so‘m 💵\n\n"
+            "👨‍💻 Admin: @toshmirzayevinomjon"
+        )
+        send_photo(bot, chat, "season pass.jpg", caption, season_menu())
         bot.answer_callback_query(call.id)
+        return
+
+    if data == "donate_stadium":
+        caption = "🏟 Stadion — ma'lumot uchun pastdagi tugmaga bosing."
+        send_photo(bot, chat, "stadium.jpg", caption, stadium_kb())
+        bot.answer_callback_query(call.id)
+        return
+
+    if data == "donate_club":
+        caption = "⚡ Dream Club — info uchun pastdagi tugmaga bosing."
+        send_photo(bot, chat, "dream club.jpg", caption, club_kb())
+        bot.answer_callback_query(call.id)
+        return
+
+    if data == "donate_sticker":
+        caption = "🎟 Sitikerlar — info uchun pastdagi tugmaga bosing."
+        send_photo(bot, chat, "sitiker.jpg", caption, sticker_kb())
+        bot.answer_callback_query(call.id)
+        return
+
+    # Item buyurtma tugmalari (format: item|<key>)
+    if data.startswith("item|"):
+        _, key = data.split("|", 1)
+        # show item detail + buy button
+        item = ITEMS.get(key)
+        if not item:
+            bot.answer_callback_query(call.id, "Item topilmadi.")
+            return
+        title, price, image, desc = item
+        caption = f"*{title}*\n\n{desc}\n\nNarx: {price}"
+        kb = types.InlineKeyboardMarkup()
+        kb.add(types.InlineKeyboardButton("🛒 Buyurtma berish", callback_data=f"order|{key}"))
+        kb.add(types.InlineKeyboardButton("⬅️ Orqaga", callback_data="back_main"))
+        send_photo(bot, chat, image, caption, kb)
+        bot.answer_callback_query(call.id)
+        return
+
+    # Order yaratish: order|<item_key>
+    if data.startswith("order|"):
+        _, item_key = data.split("|", 1)
+        create_order_and_notify(bot, call, item_key)
         return
 
     # Admin callback prefiksi
     if data.startswith("admin_"):
-        # format admin_accept|orderid
         res = admin_update_from_callback(bot, data, call.from_user.id)
-        # agar natija matn bo'lsa uni yubor
         if res:
+            # send result to admin who clicked
             bot.send_message(call.from_user.id, res)
         bot.answer_callback_query(call.id)
         return
 
     bot.answer_callback_query(call.id, "Noma'lum tugma.")
+    return
 
 if __name__ == "__main__":
     print("Bot ishga tushmoqda...")

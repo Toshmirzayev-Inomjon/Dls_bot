@@ -1,37 +1,41 @@
-# crm.py
 from utils import load_orders, save_orders, new_order_id, now_str
 
-def add_order(user_id, username, item, amount, payment_method, note=""):
+# Yangi buyurtma yaratish
+def add_order(user_id, item_name, price, username=None, amount=1, payment_method=None, note=None):
     orders = load_orders()
-    oid = new_order_id()
-    orders[oid] = {
+
+    order_id = new_order_id()
+    orders[order_id] = {
         "user_id": user_id,
         "username": username,
-        "item": item,
+        "item": item_name,
         "amount": amount,
+        "price": price,
         "payment_method": payment_method,
+        "status": "yangi",
         "note": note,
-        "status": "kutilmoqda",
-        "created_at": now_str(),
-        "updated_at": now_str()
+        "created_at": now_str()
     }
-    save_orders(orders)
-    return oid
 
-def update_order_status(order_id, status, admin_id=None):
-    orders = load_orders()
-    if order_id not in orders:
-        return False
-    orders[order_id]["status"] = status
-    orders[order_id]["updated_at"] = now_str()
-    if admin_id:
-        orders[order_id]["admin"] = admin_id
     save_orders(orders)
-    return True
+    return order_id
 
+# Bitta buyurtmani olish
 def get_order(order_id):
     orders = load_orders()
     return orders.get(order_id)
 
+# Barcha buyurtmalarni olish
 def all_orders():
     return load_orders()
+
+# Buyurtma holatini yangilash
+def update_order_status(order_id, status, admin_id=None):
+    orders = load_orders()
+    if order_id in orders:
+        orders[order_id]['status'] = status
+        if admin_id:
+            orders[order_id]['admin_id'] = admin_id
+        save_orders(orders)
+        return True
+    return False

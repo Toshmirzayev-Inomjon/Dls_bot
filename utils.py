@@ -18,7 +18,7 @@ def save_orders(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 def new_order_id():
-    # unik id sikli: YYYYMMDDHHMMSS + rand
+    # unik id: YYYYMMDDHHMMSSffffff
     return datetime.utcnow().strftime("%Y%m%d%H%M%S%f")
 
 def now_str():
